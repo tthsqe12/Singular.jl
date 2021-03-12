@@ -100,6 +100,7 @@ end
 end
 
 @testset "caller.LibNormal" begin
+#=
    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
    I = Ideal(R, z-x^4, z-y^6)
    l = Singular.LibNormal.normal(I)
@@ -147,15 +148,26 @@ end
    S = l[1][1][1]
    @test isa(S, Singular.PolyRing{n_algExt})
    @test base_ring(gens(l[1][1][2][:norid])[1]*gens(S)[1]*a) == K
-
+=#
    F, (Fa,) = FunctionField(Fp(7), ["a"])
    K, a = AlgebraicExtensionField(F, Fa^2 + 1)
+@show K
+@show K.ptr.cpp_object
    R, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
    I = Ideal(R, a*z-x^4, z-y^6)
    l = Singular.LibNormal.normal(I)
    S = l[1][1][1]
+@show K
+@show K.ptr.cpp_object
+@show base_ring(S)
+   @test base_ring(S) == K
+#=
    @test isa(S, Singular.PolyRing{n_algExt})
+@show base_ring(gens(l[1][1][2][:norid])[1])
+@show K
+   @test base_ring(gens(l[1][1][2][:norid])[1]) == K
    @test base_ring(gens(l[1][1][2][:norid])[1]*gens(S)[1]*a) == K
+=#
 end
 
 @testset "caller.lists" begin

@@ -50,7 +50,13 @@ one(R::N_GField) = R(1)
 
 zero(R::N_GField) = R(0)
 
-gen(R::N_GField) = R(libSingular.n_Param(Cint(1), R.ptr))
+function gen(R::N_GField)
+   if degree(R) == 1
+      return zero(R)
+   else
+      return R(libSingular.n_Param(Cint(1), R.ptr))
+   end
+end
 
 function isone(n::n_GF)
    c = parent(n)
@@ -93,7 +99,9 @@ end
 function AbstractAlgebra.expressify(a::n_GF; context = nothing)::Any
   F = parent(a)
   i = reinterpret(Int, a.ptr.cpp_object)
-  if 1 < i < characteristic(F)^degree(F)
+  if degree(F) == 1
+    return i
+  elseif 1 < i < characteristic(F)^degree(F)
     return Expr(:call, :^, F.S, i)
   elseif i == 1
     return F.S
@@ -188,8 +196,15 @@ function ^(x::n_GF, y::Int)
     elseif y == 1
        return x
     else
-       p = libSingular.n_Power(x.ptr, y, parent(x).ptr)
-       return parent(x)(p)
+       R = parent(x)
+       if degree(R) == 1
+          i = reinterpret(Int, x.ptr.cpp_object)
+          i = powermod(i, y, Int(characteristic(R)))
+          p = libSingular.number_ptr(reinterpret(Ptr{libSingular.number}, i))
+       else
+          p = libSingular.n_Power(x.ptr, y, R.ptr)
+       end
+       return R(p)
     end
 end
 
